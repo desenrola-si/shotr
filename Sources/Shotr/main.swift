@@ -100,6 +100,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// Flags que não sobem a interface: consultam ou alteram o item de abertura no login.
 func handleLoginArguments() {
     let arguments = Set(CommandLine.arguments.dropFirst())
+    if arguments.contains("--permission") {
+        print("gravacao-de-tela: \(CGPreflightScreenCaptureAccess() ? "concedida" : "negada")")
+        exit(0)
+    }
     guard !arguments.isDisjoint(with: ["--login-status", "--enable-login", "--disable-login"]) else { return }
 
     let service = SMAppService.mainApp
