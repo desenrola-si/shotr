@@ -52,6 +52,19 @@ No editor:
 ⌘C copia, ⌘S salva, ⇧⌘S salva como, ⌘Z desfaz, ⇧⌘Z refaz, ⌘+/− zoom, ⌘0 tamanho real.
 Segurar ⇧ ao arrastar trava ângulo (linha/seta) ou proporção (retângulo/elipse).
 
+## Abrir junto com o sistema
+
+Menu da barra › **Abrir ao Iniciar** (`SMAppService`, o mecanismo atual de Itens de Início do macOS).
+Pelo terminal:
+
+```bash
+~/Applications/Shotr.app/Contents/MacOS/Shotr --login-status    # --enable-login / --disable-login
+```
+
+O registro grava o caminho do bundle: se mover o `Shotr.app`, desligue e ligue de novo.
+O app fica só na barra de menus (`LSUIElement`) — sem ícone no Dock e fora do ⌘Tab, exceto
+enquanto uma janela do editor está aberta.
+
 ## Linha de comando
 
 ```bash

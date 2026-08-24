@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
@@ -95,6 +96,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openSettings() { SettingsWindowController.present() }
     @objc private func pasteAsImage() { CaptureCoordinator.captureFromClipboard() }
 }
+
+/// Flags que não sobem a interface: consultam ou alteram o item de abertura no login.
+func handleLoginArguments() {
+    let arguments = Set(CommandLine.arguments.dropFirst())
+    guard !arguments.isDisjoint(with: ["--login-status", "--enable-login", "--disable-login"]) else { return }
+
+    let service = SMAppService.mainApp
+    if arguments.contains("--enable-login") {
+        do { try service.register() } catch { print("erro ao registrar: \(error.localizedDescription)") }
+    }
+    if arguments.contains("--disable-login") {
+        do { try service.unregister() } catch { print("erro ao remover: \(error.localizedDescription)") }
+    }
+
+    let description: String
+    switch service.status {
+    case .enabled: description = "enabled"
+    case .requiresApproval: description = "requiresApproval (aprovar em Ajustes › Geral › Itens de Início)"
+    case .notRegistered: description = "notRegistered"
+    case .notFound: description = "notFound"
+    @unknown default: description = "desconhecido"
+    }
+    print("abrir-ao-iniciar: \(description)")
+    exit(0)
+}
+
+handleLoginArguments()
 
 let application = NSApplication.shared
 let delegate = AppDelegate()
