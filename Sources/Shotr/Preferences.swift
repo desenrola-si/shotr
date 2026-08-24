@@ -47,6 +47,7 @@ final class Preferences {
         static let launchAtStartup = "launchAtStartup"
         static let lastArea = "lastCaptureArea"
         static let scrollingInterval = "scrollingInterval"
+        static let hasSeenWelcome = "hasSeenWelcome"
     }
 
     private init() {
@@ -111,6 +112,11 @@ final class Preferences {
     var scrollingInterval: Double {
         get { max(0.15, defaults.double(forKey: Key.scrollingInterval)) }
         set { defaults.set(newValue, forKey: Key.scrollingInterval) }
+    }
+
+    var hasSeenWelcome: Bool {
+        get { defaults.bool(forKey: Key.hasSeenWelcome) }
+        set { defaults.set(newValue, forKey: Key.hasSeenWelcome) }
     }
 
     var lastArea: CGRect? {

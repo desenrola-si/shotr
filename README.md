@@ -11,6 +11,10 @@ sem dependência externa.
 open ~/Applications/Shotr.app
 ```
 
+O Shotr não tem janela principal nem ícone no Dock: ele vive na barra de menus, no topo direito.
+Abrir pelo Spotlight ou pelo Finder com o app já rodando faz aparecer a janela de boas-vindas —
+com o estado da permissão, os atalhos atuais e um botão para testar a captura.
+
 Na primeira execução o macOS pede **Gravação de Tela**: Ajustes do Sistema › Privacidade e
 Segurança › Gravação de Tela → marcar o Shotr → reabrir o app.
 

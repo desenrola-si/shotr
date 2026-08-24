@@ -15,6 +15,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         reportFailedShortcuts()
 
         runCommandLineAction()
+
+        if !Preferences.shared.hasSeenWelcome {
+            Preferences.shared.hasSeenWelcome = true
+            WelcomeWindowController.present()
+        }
+    }
+
+    /// Clicar no app no Spotlight, no Finder ou no Dock cai aqui quando ele já está rodando.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        WelcomeWindowController.present()
+        return true
     }
 
     /// Permite disparar uma captura direto pelo terminal:

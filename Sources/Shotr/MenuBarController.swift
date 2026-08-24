@@ -11,6 +11,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         statusItem.button?.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Shotr")
         statusItem.button?.image?.isTemplate = true
         statusItem.button?.toolTip = "Shotr"
+        statusItem.isVisible = true
+        if statusItem.button == nil {
+            NSLog("Shotr: a barra de menus não devolveu espaço para o ícone")
+        }
         menu.delegate = self
         buildMenu()
         NotificationCenter.default.addObserver(self, selector: #selector(buildMenu),
