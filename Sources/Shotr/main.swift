@@ -19,10 +19,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         center.register(.previousArea) { CaptureCoordinator.capturePreviousArea() }
         center.register(.pickColor) { CaptureCoordinator.pickColor() }
 
-        if !ScreenCapturer.hasPermission() {
-            ScreenCapturer.requestPermission()
-        }
-
         runCommandLineAction()
     }
 
@@ -101,7 +97,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 func handleLoginArguments() {
     let arguments = Set(CommandLine.arguments.dropFirst())
     if arguments.contains("--permission") {
-        print("gravacao-de-tela: \(CGPreflightScreenCaptureAccess() ? "concedida" : "negada")")
+        let semaphore = DispatchSemaphore(value: 0)
+        var granted = false
+        Task {
+            granted = await PermissionGuide.hasAccess()
+            semaphore.signal()
+        }
+        semaphore.wait()
+        print("gravacao-de-tela: \(granted ? "concedida" : "negada") (preflight diz: \(CGPreflightScreenCaptureAccess() ? "concedida" : "negada"))")
         exit(0)
     }
     guard !arguments.isDisjoint(with: ["--login-status", "--enable-login", "--disable-login"]) else { return }

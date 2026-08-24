@@ -51,8 +51,14 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 </plist>
 PLIST
 
-echo "▸ assinando (ad-hoc)…"
-codesign --force --deep --sign - --identifier "$BUNDLE_ID" "$APP"
+SIGN_NAME="Shotr Local Signing"
+if security find-certificate -c "$SIGN_NAME" >/dev/null 2>&1; then
+  echo "▸ assinando com \"$SIGN_NAME\" (identidade estável entre builds)…"
+  codesign --force --deep --sign "$SIGN_NAME" --identifier "$BUNDLE_ID" "$APP"
+else
+  echo "▸ assinando ad-hoc — rode Tools/setup-signing.sh para parar de reautorizar a cada build"
+  codesign --force --deep --sign - --identifier "$BUNDLE_ID" "$APP"
+fi
 
 echo "✓ pronto: $APP"
 echo "  abrir com:  open \"$APP\""

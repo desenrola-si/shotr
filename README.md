@@ -14,8 +14,25 @@ open ~/Applications/Shotr.app
 Na primeira execução o macOS pede **Gravação de Tela**: Ajustes do Sistema › Privacidade e
 Segurança › Gravação de Tela → marcar o Shotr → reabrir o app.
 
-> O app é assinado ad-hoc (sem certificado de desenvolvedor). Cada rebuild muda a identidade,
-> então o macOS pode pedir a permissão de novo depois de rodar `./build.sh`.
+### Assinatura e a permissão que não gruda
+
+Assinado ad-hoc, cada `./build.sh` muda o `cdhash` e o macOS trata o resultado como **outro app**:
+o Shotr continua marcado no painel e a captura segue negada, porque o requisito gravado no TCC
+aponta para o binário anterior.
+
+```bash
+Tools/setup-signing.sh   # certificado local, uma vez só
+./build.sh               # passa a assinar com ele
+```
+
+O requisito vira `identifier "com.ximenes.shotr" and certificate root = H"…"` — preso ao
+certificado, não ao binário. A autorização passa a sobreviver aos rebuilds.
+
+Se a permissão travar em estado inconsistente:
+
+```bash
+tccutil reset ScreenCapture com.ximenes.shotr
+```
 
 ## Atalhos
 
