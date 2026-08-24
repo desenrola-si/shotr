@@ -76,10 +76,10 @@ final class ScrollingCapture {
 
     private func registerKeys() {
         let center = HotKeyCenter.shared
-        hotKeyIDs.append(center.register(HotKey(keyCode: UInt32(kVK_Return), modifiers: 0)) { [weak self] in
+        hotKeyIDs.append(center.register(HotKey(keyCode: UInt32(kVK_Return), carbonModifiers: 0)) { [weak self] in
             self?.finish(cancelled: false)
         })
-        hotKeyIDs.append(center.register(HotKey(keyCode: UInt32(kVK_Escape), modifiers: 0)) { [weak self] in
+        hotKeyIDs.append(center.register(HotKey(keyCode: UInt32(kVK_Escape), carbonModifiers: 0)) { [weak self] in
             self?.finish(cancelled: true)
         })
     }

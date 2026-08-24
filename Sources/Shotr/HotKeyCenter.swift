@@ -1,39 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
 
-struct HotKey: Equatable {
-    var keyCode: UInt32
-    var modifiers: UInt32
-
-    static let captureScreen = HotKey(keyCode: UInt32(kVK_ANSI_1), modifiers: UInt32(shiftKey | cmdKey))
-    static let captureArea = HotKey(keyCode: UInt32(kVK_ANSI_2), modifiers: UInt32(shiftKey | cmdKey))
-    static let scrollingCapture = HotKey(keyCode: UInt32(kVK_ANSI_3), modifiers: UInt32(shiftKey | cmdKey))
-    static let recognizeText = HotKey(keyCode: UInt32(kVK_ANSI_O), modifiers: UInt32(controlKey | optionKey | cmdKey))
-    static let previousArea = HotKey(keyCode: UInt32(kVK_ANSI_4), modifiers: UInt32(shiftKey | cmdKey))
-    static let pickColor = HotKey(keyCode: UInt32(kVK_ANSI_5), modifiers: UInt32(shiftKey | cmdKey))
-
-    var cocoaModifiers: NSEvent.ModifierFlags {
-        var flags: NSEvent.ModifierFlags = []
-        if modifiers & UInt32(cmdKey) != 0 { flags.insert(.command) }
-        if modifiers & UInt32(shiftKey) != 0 { flags.insert(.shift) }
-        if modifiers & UInt32(optionKey) != 0 { flags.insert(.option) }
-        if modifiers & UInt32(controlKey) != 0 { flags.insert(.control) }
-        return flags
-    }
-
-    var keyEquivalent: String {
-        switch Int(keyCode) {
-        case kVK_ANSI_1: return "1"
-        case kVK_ANSI_2: return "2"
-        case kVK_ANSI_3: return "3"
-        case kVK_ANSI_4: return "4"
-        case kVK_ANSI_5: return "5"
-        case kVK_ANSI_O: return "o"
-        default: return ""
-        }
-    }
-}
-
 final class HotKeyCenter {
     static let shared = HotKeyCenter()
 
@@ -63,7 +30,7 @@ final class HotKeyCenter {
         nextID += 1
         var ref: EventHotKeyRef?
         let hotKeyID = EventHotKeyID(signature: OSType(0x53485452), id: id) // 'SHTR'
-        let status = RegisterEventHotKey(hotKey.keyCode, hotKey.modifiers, hotKeyID,
+        let status = RegisterEventHotKey(hotKey.keyCode, hotKey.carbonModifiers, hotKeyID,
                                          GetApplicationEventTarget(), 0, &ref)
         guard status == noErr, let ref else { return 0 }
         registered[id] = ref

@@ -13,37 +13,42 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         statusItem.button?.toolTip = "Shotr"
         menu.delegate = self
         buildMenu()
+        NotificationCenter.default.addObserver(self, selector: #selector(buildMenu),
+                                               name: .shortcutsChanged, object: nil)
         statusItem.menu = menu
     }
 
-    private func buildMenu() {
+    @objc private func buildMenu() {
         menu.removeAllItems()
 
-        add(title: "Reabrir última captura", action: #selector(reopen), hotKey: nil)
+        add(title: "Reabrir última captura", action: #selector(reopen), shortcut: nil)
         menu.addItem(.separator())
 
-        add(title: "Capturar Tela", action: #selector(captureScreen), hotKey: .captureScreen, symbol: "display")
-        add(title: "Capturar Área", action: #selector(captureArea), hotKey: .captureArea, symbol: "viewfinder")
-        add(title: "Captura Rolando", action: #selector(captureScrolling), hotKey: .scrollingCapture, symbol: "chevron.down.2")
-        add(title: "Reconhecer Texto/QR", action: #selector(recognizeText), hotKey: .recognizeText, symbol: "text.viewfinder")
+        add(title: ShortcutAction.captureScreen.title, action: #selector(captureScreen), shortcut: .captureScreen)
+        add(title: ShortcutAction.captureArea.title, action: #selector(captureArea), shortcut: .captureArea)
+        add(title: ShortcutAction.captureScrolling.title, action: #selector(captureScrolling), shortcut: .captureScrolling)
+        add(title: ShortcutAction.recognizeText.title, action: #selector(recognizeText), shortcut: .recognizeText)
 
         let moreItem = NSMenuItem(title: "mais", action: nil, keyEquivalent: "")
         moreItem.image = NSImage(systemSymbolName: "ellipsis", accessibilityDescription: nil)
         let moreMenu = NSMenu()
-        moreMenu.addItem(item(title: "Capturar Área Anterior", action: #selector(capturePreviousArea), hotKey: .previousArea))
-        moreMenu.addItem(item(title: "Conta-gotas de Cor", action: #selector(pickColor), hotKey: .pickColor))
-        moreMenu.addItem(item(title: "Abrir Imagem da Área de Transferência", action: #selector(fromClipboard), hotKey: nil))
+        moreMenu.addItem(item(title: ShortcutAction.capturePreviousArea.title,
+                              action: #selector(capturePreviousArea), shortcut: .capturePreviousArea))
+        moreMenu.addItem(item(title: ShortcutAction.pickColor.title,
+                              action: #selector(pickColor), shortcut: .pickColor))
+        moreMenu.addItem(item(title: "Abrir Imagem da Área de Transferência",
+                              action: #selector(fromClipboard), shortcut: nil))
         moreMenu.addItem(.separator())
-        moreMenu.addItem(item(title: "Abrir Pasta de Capturas", action: #selector(openFolder), hotKey: nil))
+        moreMenu.addItem(item(title: "Abrir Pasta de Capturas", action: #selector(openFolder), shortcut: nil))
         moreItem.submenu = moreMenu
         menu.addItem(moreItem)
 
         menu.addItem(.separator())
 
-        let launchItem = NSMenuItem(title: "Abrir ao Iniciar", action: #selector(toggleLaunchAtStartup), keyEquivalent: "")
-        launchItem.target = self
-        launchItem.state = isLaunchAtStartupEnabled ? .on : .off
-        menu.addItem(launchItem)
+        let shortcutsItem = NSMenuItem(title: "Configurar Atalhos…", action: #selector(openShortcuts), keyEquivalent: "")
+        shortcutsItem.image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: nil)
+        shortcutsItem.target = self
+        menu.addItem(shortcutsItem)
 
         let settingsItem = NSMenuItem(title: "Ajustes", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.keyEquivalentModifierMask = [.command]
@@ -51,19 +56,34 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        let launchItem = NSMenuItem(title: "Abrir ao Iniciar", action: #selector(toggleLaunchAtStartup), keyEquivalent: "")
+        launchItem.target = self
+        launchItem.state = isLaunchAtStartupEnabled ? .on : .off
+        menu.addItem(launchItem)
+
+        menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Sair", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
 
-    private func item(title: String, action: Selector, hotKey: HotKey?, symbol: String? = nil) -> NSMenuItem {
-        let menuItem = NSMenuItem(title: title, action: action, keyEquivalent: hotKey?.keyEquivalent ?? "")
+    private func item(title: String, action: Selector, shortcut: ShortcutAction?) -> NSMenuItem {
+        let hotKey = shortcut.flatMap { ShortcutStore.shared.hotKey(for: $0) }
+        let menuItem = NSMenuItem(title: title, action: action, keyEquivalent: hotKey?.menuKeyEquivalent ?? "")
         menuItem.keyEquivalentModifierMask = hotKey?.cocoaModifiers ?? []
         menuItem.target = self
-        if let symbol { menuItem.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) }
+        if let shortcut {
+            menuItem.image = NSImage(systemSymbolName: shortcut.symbolName, accessibilityDescription: nil)
+        }
+        if let hotKey, hotKey.menuKeyEquivalent.isEmpty {
+            menuItem.title = "\(title)   \(hotKey.displayString)"
+        }
+        if let shortcut, let warning = ShortcutStore.shared.warning(for: shortcut) {
+            menuItem.toolTip = warning
+        }
         return menuItem
     }
 
-    private func add(title: String, action: Selector, hotKey: HotKey?, symbol: String? = nil) {
-        menu.addItem(item(title: title, action: action, hotKey: hotKey, symbol: symbol))
+    private func add(title: String, action: Selector, shortcut: ShortcutAction?) {
+        menu.addItem(item(title: title, action: action, shortcut: shortcut))
     }
 
     func menuWillOpen(_ menu: NSMenu) {
@@ -87,6 +107,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func openSettings() {
         SettingsWindowController.present()
+    }
+
+    @objc private func openShortcuts() {
+        SettingsWindowController.present(selectingShortcuts: true)
     }
 
     // MARK: - Abrir ao iniciar

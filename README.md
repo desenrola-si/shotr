@@ -36,14 +36,27 @@ tccutil reset ScreenCapture com.ximenes.shotr
 
 ## Atalhos
 
-| Atalho | Ação |
+Todos configuráveis em **Ajustes › Atalhos** (ou menu da barra › Configurar Atalhos…): clique no
+campo, digite a combinação. Os padrões evitam de propósito ⇧⌘3, ⇧⌘4, ⇧⌘5 e ⇧⌘6, que são as
+capturas nativas do macOS — um atalho global registrado por cima de um desses nunca dispara,
+porque o sistema atende primeiro.
+
+| Padrão | Ação |
 |---|---|
 | ⇧⌘1 | Capturar tela inteira (a que está sob o cursor) |
 | ⇧⌘2 | Capturar área |
-| ⇧⌘3 | Captura rolando (costura os quadros) |
+| ⌥⇧⌘S | Captura rolando (costura os quadros) |
 | ⌃⌥⌘O | Reconhecer texto/QR de uma área |
-| ⇧⌘4 | Repetir a última área |
-| ⇧⌘5 | Conta-gotas de cor (copia o hex) |
+| ⌥⇧⌘R | Repetir a última área |
+| ⌥⇧⌘C | Conta-gotas de cor (copia o hex) |
+
+A tela lê os atalhos que o macOS ocupa direto de `com.apple.symbolichotkeys` e avisa embaixo do
+campo quando a combinação escolhida é do sistema ou já pertence a outra ação do Shotr. Se outro
+app tiver pegado a tecla antes, o Shotr avisa por notificação ao iniciar.
+
+```bash
+~/Applications/Shotr.app/Contents/MacOS/Shotr --shortcuts   # lista atalhos, conflitos e registro
+```
 
 Na seleção de área: arrastar seleciona, clique simples pega a janela sob o cursor, **Espaço**
 captura a tela inteira, **Esc** cancela. A lupa mostra o pixel e o hex embaixo do cursor.

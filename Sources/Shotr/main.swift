@@ -11,13 +11,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         buildMainMenu()
 
         HotKeyCenter.shared.start()
-        let center = HotKeyCenter.shared
-        center.register(.captureScreen) { CaptureCoordinator.captureFullScreen() }
-        center.register(.captureArea) { CaptureCoordinator.captureArea() }
-        center.register(.scrollingCapture) { CaptureCoordinator.captureScrolling() }
-        center.register(.recognizeText) { CaptureCoordinator.recognizeText() }
-        center.register(.previousArea) { CaptureCoordinator.capturePreviousArea() }
-        center.register(.pickColor) { CaptureCoordinator.pickColor() }
+        ShortcutStore.shared.registerAll()
+        reportFailedShortcuts()
 
         runCommandLineAction()
     }
@@ -26,6 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// `Shotr.app/Contents/MacOS/Shotr --area`
     private func runCommandLineAction() {
         let actions: [String: () -> Void] = [
+            "--settings": { SettingsWindowController.present() },
+            "--shortcuts-window": { SettingsWindowController.present(selectingShortcuts: true) },
             "--screen": CaptureCoordinator.captureFullScreen,
             "--area": CaptureCoordinator.captureArea,
             "--scroll": CaptureCoordinator.captureScrolling,
@@ -36,6 +33,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let argument = CommandLine.arguments.dropFirst().first(where: { actions[$0] != nil }),
               let action = actions[argument] else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: action)
+    }
+
+    /// Um atalho pode falhar quando outro app já registrou a mesma tecla.
+    private func reportFailedShortcuts() {
+        let failed = ShortcutStore.shared.failedRegistrations
+        guard !failed.isEmpty else { return }
+        Notifier.show(title: "Atalho ocupado por outro app",
+                      body: failed.map(\.title).joined(separator: ", ") + " — troque em Ajustes › Atalhos.")
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -96,6 +101,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 /// Flags que não sobem a interface: consultam ou alteram o item de abertura no login.
 func handleLoginArguments() {
     let arguments = Set(CommandLine.arguments.dropFirst())
+    if arguments.contains("--shortcuts") {
+        HotKeyCenter.shared.start()
+        ShortcutStore.shared.registerAll()
+        let failed = Set(ShortcutStore.shared.failedRegistrations)
+        for action in ShortcutAction.allCases {
+            let hotKey = ShortcutStore.shared.hotKey(for: action)
+            let registro = failed.contains(action) ? "REGISTRO FALHOU" : "registrado"
+            let aviso = ShortcutStore.shared.warning(for: action).map { " · \($0)" } ?? ""
+            print("\(action.title): \(hotKey?.displayString ?? "sem atalho") · \(registro)\(aviso)")
+        }
+        exit(0)
+    }
+
     if arguments.contains("--permission") {
         let semaphore = DispatchSemaphore(value: 0)
         var granted = false
